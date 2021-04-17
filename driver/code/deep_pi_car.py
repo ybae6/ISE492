@@ -2,8 +2,9 @@ import logging
 import picar
 import cv2
 import datetime
+import time
 from hand_coded_lane_follower import HandCodedLaneFollower
-from objects_on_road_processor import ObjectsOnRoadProcessor
+#from objects_on_road_processor import ObjectsOnRoadProcessor
 
 _SHOW_IMAGE = True
 
@@ -39,11 +40,11 @@ class DeepPiCar(object):
 
         logging.debug('Set up front wheels')
         self.front_wheels = picar.front_wheels.Front_Wheels()
-        self.front_wheels.turning_offset = -25  # calibrate servo to center
+        self.front_wheels.turning_offset = 0  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
         self.lane_follower = HandCodedLaneFollower(self)
-        self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
+        #self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
         # lane_follower = DeepLearningLaneFollower()
 
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -89,29 +90,43 @@ class DeepPiCar(object):
 
         logging.info('Starting to drive at speed %s...' % speed)
         self.back_wheels.speed = speed
-        i = 0
+        i = 5
         while self.camera.isOpened():
             _, image_lane = self.camera.read()
             image_objs = image_lane.copy()
             i += 1
             self.video_orig.write(image_lane)
 
-            image_objs = self.process_objects_on_road(image_objs)
+            #image_objs = self.process_objects_on_road(image_objs)
             self.video_objs.write(image_objs)
             show_image('Detected Objects', image_objs)
 
             image_lane = self.follow_lane(image_lane)
             self.video_lane.write(image_lane)
             show_image('Lane Lines', image_lane)
-
+            
+            """
+            # Initialize frame rate calculation
+            frame_rate_calc = 1
+            freq = cv2.getTickFrequency()
+            # Start timer (for calculating frame rate)
+            t1 = cv2.getTickCount()
+            # Calculate framerate
+            t2 = cv2.getTickCount()
+            time1 = (t2-t1)/freq
+            frame_rate_calc= 1/time1
+            # Draw framerate in corner of frame
+            cv2.putText(image_lane,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+            """
+                
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.cleanup()
                 break
-
+    """
     def process_objects_on_road(self, image):
         image = self.traffic_sign_processor.process_objects_on_road(image)
         return image
-
+    """
     def follow_lane(self, image):
         image = self.lane_follower.follow_lane(image)
         return image
@@ -127,7 +142,11 @@ def show_image(title, frame, show=_SHOW_IMAGE):
 
 def main():
     with DeepPiCar() as car:
-        car.drive(40)
+        time.sleep(5)
+        car.drive(20)
+        
+        
+        
 
 
 if __name__ == '__main__':

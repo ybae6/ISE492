@@ -2,7 +2,7 @@ import cv2
 import logging
 import datetime
 import time
-import edgetpu.detection.engine
+#import edgetpu.detection.engine
 from PIL import Image
 from traffic_objects import *
 
@@ -37,14 +37,14 @@ class ObjectsOnRoadProcessor(object):
         with open(label, 'r') as f:
             pairs = (l.strip().split(maxsplit=1) for l in f.readlines())
             self.labels = dict((int(k), v) for k, v in pairs)
-
+        """
         # initial edge TPU engine
         logging.info('Initialize Edge TPU with model %s...' % model)
         self.engine = edgetpu.detection.engine.DetectionEngine(model)
         self.min_confidence = 0.30
         self.num_of_objects = 3
         logging.info('Initialize Edge TPU with model done.')
-
+        """
         # initialize open cv for drawing boxes
         self.font = cv2.FONT_HERSHEY_SIMPLEX
         self.bottomLeftCornerOfText = (10, height - 10)
@@ -126,7 +126,7 @@ class ObjectsOnRoadProcessor(object):
     ############################
     def detect_objects(self, frame):
         logging.debug('Detecting objects...')
-
+        """
         # call tpu for inference
         start_ms = time.time()
         frame_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -147,16 +147,16 @@ class ObjectsOnRoadProcessor(object):
                 cv2.putText(frame, annotate_text, coord_top_left, self.font, self.fontScale, self.boxColor, self.lineType)
         else:
             logging.debug('No object detected')
-
+        
         elapsed_ms = time.time() - start_ms
-
+        
         annotate_summary = "%.1f FPS" % (1.0/elapsed_ms)
         logging.debug(annotate_summary)
         cv2.putText(frame, annotate_summary, self.bottomLeftCornerOfText, self.font, self.fontScale, self.fontColor, self.lineType)
         #cv2.imshow('Detected Objects', frame)
 
         return objects, frame
-
+        """
 
 ############################
 # Utility Functions
